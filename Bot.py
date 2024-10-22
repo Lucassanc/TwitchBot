@@ -65,7 +65,7 @@ async def procesar_apuestas():
 
 async def girar_ruleta_periodicamente():
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(120)
         await procesar_apuestas()
         
 def reproducir_audio():
