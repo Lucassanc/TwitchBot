@@ -499,7 +499,7 @@ async def apostar(ctx):
     actualizar_fichas(user, user_fichas, fichas_file)
 
     guardar_apuesta(user, cantidad, apuesta)
-    await ctx.send(f"Apuesta registrada: {user} apostó {cantidad} fichas a {apuesta}. Te quedan {user_fichas} Merlumonedas")
+    await ctx.send(f"Apuesta registrada de {user}. Te quedan {user_fichas} Merlumonedas")
 
 @bot.command(name='tragamonedas')
 async def tragamonedas(ctx):
