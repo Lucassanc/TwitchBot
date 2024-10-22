@@ -28,37 +28,31 @@ async def procesar_apuestas():
         numero = parts[0].strip()
         color = parts[1].strip()
 
-    await bot._ws.send_privmsg('tu_canal', f"El número ganador es: {numero} y el color ganador es: {color}.")
+    await bot._ws.send_privmsg('SoyMerlu', f"El número ganador es: {numero} {color}.")
 
     with open(apuestas_file, 'r') as file:
         apuestas = file.readlines()
 
+    await bot._ws.send_privmsg('SoyMerlu', f"Repartiendo premios...")
     for apuesta in apuestas:
         user, cantidad_str, tipo_apuesta = apuesta.strip().split(',')
         cantidad = int(cantidad_str)
 
         user_fichas = obtener_fichas(user, fichas_file)
-        if user_fichas is None:
-            await bot._ws.send_privmsg('SoyMerlu', f"Usuario {user} no encontrado en el archivo de fichas.")
-            continue
+        
 
         if tipo_apuesta.isdigit() and int(tipo_apuesta) in range(37):
             if numero == tipo_apuesta:
                 ganancia = cantidad * 36
                 user_fichas += ganancia
-                await bot._ws.send_privmsg('SoyMerlu', f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al número {tipo_apuesta}.")
-            else:
-                await bot._ws.send_privmsg('SoyMerlu', f"Lo siento {user}, perdiste {cantidad} fichas apostando al número {tipo_apuesta}.")
         elif tipo_apuesta.lower() in ["rojo", "negro"]:
             if color.lower() == tipo_apuesta:
                 ganancia = cantidad * 2
                 user_fichas += ganancia
-                await bot._ws.send_privmsg('SoyMerlu', f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al color {tipo_apuesta}.")
-            else:
-                await bot._ws.send_privmsg('SoyMerlu', f"Lo siento {user}, perdiste {cantidad} fichas apostando al color {tipo_apuesta}.")
 
         actualizar_fichas(user, user_fichas, fichas_file)
 
+    await bot._ws.send_privmsg('SoyMerlu', f"Premios repartidos")
     with open(apuestas_file, 'w') as file:
         file.write("")
 
@@ -505,7 +499,7 @@ async def apostar(ctx):
     actualizar_fichas(user, user_fichas, fichas_file)
 
     guardar_apuesta(user, cantidad, apuesta)
-    await ctx.send(f"Apuesta registrada: {user} apostó {cantidad} fichas a {apuesta}.")
+    await ctx.send(f"Apuesta registrada: {user} apostó {cantidad} fichas a {apuesta}. Te quedan {user_fichas} Merlumonedas")
 
 @bot.command(name='tragamonedas')
 async def tragamonedas(ctx):
