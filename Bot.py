@@ -4,7 +4,6 @@ import json
 import subprocess
 import asyncio
 import os
-from twitchio.ext import commands
 import pygame
 
 pygame.mixer.init()
@@ -308,6 +307,14 @@ async def event_message(ctx):
         reproducir_audio()
         usuario = ctx.author.name
         cantidad_fichas = 10000
+        manejar_recompensa(usuario, cantidad_fichas)
+        fichas = leer_fichas()
+        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
+
+    if "custom-reward-id=5e12af84-bd3c-4c6a-b63a-93b95017ecfe" in ctx.raw_data:
+        reproducir_audio()
+        usuario = ctx.author.name
+        cantidad_fichas = 50000
         manejar_recompensa(usuario, cantidad_fichas)
         fichas = leer_fichas()
         await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
