@@ -2,15 +2,80 @@ from twitchio.ext import commands
 import random
 import json
 import subprocess
+import asyncio
+import os
 from twitchio.ext import commands
 import pygame
 
 pygame.mixer.init()
 
+apuestas_file = 'Ruleta/apuestas.txt'
+fichas_file = 'FichasCasino.txt'
+ganadores_file = 'Ruleta/ganadores.txt'
+
+async def procesar_apuestas():
+    if not os.path.exists(apuestas_file) or os.stat(apuestas_file).st_size == 0:
+        return
+    await bot._ws.send_privmsg('SoyMerlu', "Se cierran las apuestas, Girando la ruleta...")
+    subprocess.run(['python', 'Ruleta\\ruleta.py'])
+
+
+    with open(ganadores_file, 'r') as file:
+        last_line = file.readlines()[-1].strip()
+        parts = last_line.split(',')
+        if len(parts) < 2:
+            await bot._ws.send_privmsg('SoyMerlu', "Formato de ganador inválido.")
+            return
+        numero = parts[0].strip()
+        color = parts[1].strip()
+
+    await bot._ws.send_privmsg('tu_canal', f"El número ganador es: {numero} y el color ganador es: {color}.")
+
+    with open(apuestas_file, 'r') as file:
+        apuestas = file.readlines()
+
+    for apuesta in apuestas:
+        user, cantidad_str, tipo_apuesta = apuesta.strip().split(',')
+        cantidad = int(cantidad_str)
+
+        user_fichas = obtener_fichas(user, fichas_file)
+        if user_fichas is None:
+            await bot._ws.send_privmsg('SoyMerlu', f"Usuario {user} no encontrado en el archivo de fichas.")
+            continue
+
+        if tipo_apuesta.isdigit() and int(tipo_apuesta) in range(37):
+            if numero == tipo_apuesta:
+                ganancia = cantidad * 36
+                user_fichas += ganancia
+                await bot._ws.send_privmsg('SoyMerlu', f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al número {tipo_apuesta}.")
+            else:
+                await bot._ws.send_privmsg('SoyMerlu', f"Lo siento {user}, perdiste {cantidad} fichas apostando al número {tipo_apuesta}.")
+        elif tipo_apuesta.lower() in ["rojo", "negro"]:
+            if color.lower() == tipo_apuesta:
+                ganancia = cantidad * 2
+                user_fichas += ganancia
+                await bot._ws.send_privmsg('SoyMerlu', f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al color {tipo_apuesta}.")
+            else:
+                await bot._ws.send_privmsg('SoyMerlu', f"Lo siento {user}, perdiste {cantidad} fichas apostando al color {tipo_apuesta}.")
+
+        actualizar_fichas(user, user_fichas, fichas_file)
+
+    with open(apuestas_file, 'w') as file:
+        file.write("")
+
+async def girar_ruleta_periodicamente():
+    while True:
+        await asyncio.sleep(10)
+        await procesar_apuestas()
+        
 def reproducir_audio():
     archivo_audio = "fichas.mp3"
     pygame.mixer.music.load(archivo_audio)
     pygame.mixer.music.play()
+
+def guardar_apuesta(user, cantidad, apuesta):
+    with open(apuestas_file, 'a') as file:
+        file.write(f"{user},{cantidad},{apuesta}\n")
 
 def leer_ganadores(archivo):
     with open(archivo, 'r') as f:
@@ -161,6 +226,8 @@ RECOMPENSA_OBJETIVO = 'Cargar Casino'
 
 @bot.event
 async def event_ready():
+    bot.loop.create_task(girar_ruleta_periodicamente())
+    print(f'{bot.nick} está listo para girar la ruleta.')
     print('Estamos listos')
 
 @bot.event
@@ -417,7 +484,6 @@ async def apostar(ctx):
         return
 
     user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
 
     user_fichas = obtener_fichas(user, fichas_file)
     if user_fichas is None:
@@ -427,38 +493,12 @@ async def apostar(ctx):
     if cantidad > user_fichas:
         await ctx.send("No tienes suficientes fichas para apostar.")
         return
-
-    await ctx.send("Girando la ruleta...")
-    subprocess.run(['python', 'Ruleta\\ruleta.py'])
-
-    ganadores_file = 'Ruleta/ganadores.txt'
-    with open(ganadores_file, 'r') as file:
-        last_line = file.readlines()[-1].strip()
-        parts = last_line.split(',')
-        if len(parts) < 2:
-            await ctx.send("Formato de ganador inválido.")
-            return
-        await ctx.send(f"El ganador es: {last_line}")
-        numero = parts[0].strip()
-        color = parts[1].strip().strip(',')
-
-    if apuesta.isdigit() and int(apuesta) in range(37):
-        user_fichas -= cantidad
-        if numero == apuesta:
-            ganancia = cantidad * 36
-            user_fichas = user_fichas - cantidad + ganancia
-            await ctx.send(f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al número {apuesta}.")
-        else:
-            await ctx.send(f"Lo siento {user}, perdiste {cantidad} fichas apostando al número {apuesta}.")
-    elif apuesta.lower() in ["rojo", "negro"]:
-        if color.lower() == apuesta:
-            ganancia = cantidad * 2
-            user_fichas = user_fichas - cantidad + ganancia
-            await ctx.send(f"¡Felicidades {user}! Ganaste {ganancia} fichas apostando al color {apuesta}.")
-        else:
-            await ctx.send(f"Lo siento {user}, perdiste {cantidad} fichas apostando al color {apuesta}.")
-
+    
+    user_fichas -= cantidad
     actualizar_fichas(user, user_fichas, fichas_file)
+
+    guardar_apuesta(user, cantidad, apuesta)
+    await ctx.send(f"Apuesta registrada: {user} apostó {cantidad} fichas a {apuesta}.")
 
 @bot.command(name='tragamonedas')
 async def tragamonedas(ctx):
@@ -508,7 +548,7 @@ async def tragamonedas(ctx):
 
 @bot.command(name='casino')
 async def casino(ctx):
-    await ctx.send(f'Los comandos de casino son: !merlumonedas, !estadisticas, !maquinita(1000), !galletita(1000), !rusa(1000), !moneda(1000)')
+    await ctx.send(f'Los comandos de casino son: !merlumonedas, !estadisticas, !apostar (cantidad) (numero o Rojo/Negro) !slot(1000), !maquinita(1000), !galletita(1000), !rusa(1000), !moneda(1000)')
                    
 @bot.command(name='comandos')
 async def comandos(ctx):
