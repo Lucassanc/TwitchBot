@@ -417,8 +417,8 @@ async def comandos(ctx):
         user_fichas = 0
         await ctx.send(f'Perdiste todas tus fichas')
     else:
-        user_fichas += cantidad
-        await ctx.send(f'ganaste 1000 fichas')
+        user_fichas += user_fichas
+        await ctx.send(f'Duplicaste tus monedas')
 
     actualizar_fichas(user, user_fichas, fichas_file)
 
@@ -549,28 +549,10 @@ async def tragamonedas(ctx):
 
 @bot.command(name='casino')
 async def casino(ctx):
-    await ctx.send(f'Los comandos de casino son: !merlumonedas, !estadisticas, !apostar (cantidad) (numero o Rojo/Negro) !slot(1000), !maquinita(1000), !galletita(1000), !rusa(1000), !moneda(1000)')
+    await ctx.send(f'Los comandos de casino son: !merlumonedas, !estadisticas, !apostar (cantidad) (numero o Rojo/Negro) !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
                    
 @bot.command(name='comandos')
 async def comandos(ctx):
     await ctx.send(f'Los comandos son: !casino, !reembolso, !memide, !pajin, !simp, !facha, !tontito, !redes, !dc, !emotes, !opgg')
-
-@bot.event
-async def event_reward_earned(channel, reward_id, user):
-    if reward_id == "01820b0c-0534-4ee5-be70-a2ca7ee3e9f0":
-        with open(RUTA_ARCHIVO, 'r') as archivo:
-            datos_usuarios = json.load(archivo)
-        if user.name not in datos_usuarios:
-            datos_usuarios[user.name] = 0
-        
-        datos_usuarios[user.name] += 100
-        with open(RUTA_ARCHIVO, 'w') as archivo:
-            json.dump(datos_usuarios, archivo)
-        await channel.send(f"@{user.name}, cargaste 100 puntos al casino")
-
-@bot.event
-async def handle_redemption(event):
-    reward_name = event.reward.title
-    await event.channel.send(f'¡Hola {event.author.name}! Gracias por canjear la recompensa.')
 
 bot.run()

@@ -1,2 +1,2 @@
 Perdiste
-Simbolos: Slot/bar.png, Slot/cereza.png, Slot/campana.png
+Simbolos: Slot/sandia.png, Slot/cereza.png, Slot/uva.png

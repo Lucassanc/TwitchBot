@@ -1,1 +1,2 @@
-soymerlu 456000
+soymerlu 120000
+evebeel 10000
