@@ -236,6 +236,7 @@ RECOMPENSA_OBJETIVO = 'Cargar Casino'
 @bot.event
 async def event_ready():
     bot.loop.create_task(girar_ruleta_periodicamente())
+    subprocess.Popen(['python', 'Ruleta\\tablero.py'])
     print(f'{bot.nick} está listo para girar la ruleta.')
 
 @bot.event
@@ -551,5 +552,4 @@ async def ruleta(ctx):
 async def casino(ctx):
     await ctx.send(f'Los comandos de casino son: !merlumonedas, !ruleta, !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
                    
-
 bot.run()
