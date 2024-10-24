@@ -11,6 +11,42 @@ pygame.mixer.init()
 apuestas_file = 'Ruleta/apuestas.txt'
 fichas_file = 'FichasCasino.txt'
 ganadores_file = 'Ruleta/ganadores.txt'
+APUESTAS_FILE = 'Ruleta/apuestas_guardadas.json'
+
+def cargar_apuestas_guardadas():
+    if os.path.exists(APUESTAS_FILE):
+        with open(APUESTAS_FILE, 'r') as file:
+            return json.load(file)
+    else:
+        return {}
+
+def guardar_apuestas_guardadas(apuestas_guardadas):
+    with open(APUESTAS_FILE, 'w') as file:
+        json.dump(apuestas_guardadas, file)
+
+def eliminar_usuario(user):
+    # Cargar el archivo JSON
+    with open(APUESTAS_FILE, 'r') as archivo:
+        data = json.load(archivo)
+
+    # Mostrar el contenido cargado para depuración
+    print("Contenido del archivo antes de eliminar:", data)
+
+    # Verificar si el usuario existe y vaciar su información
+    if user in data:
+        data[user] = []  # Vaciar la información del usuario
+        print(f"Información del usuario '{user}' ha sido vaciada.")
+    else:
+        print(f"El usuario '{user}' no existe en el archivo.")
+
+    # Guardar el archivo JSON actualizado
+    with open(APUESTAS_FILE, 'w') as archivo:
+        json.dump(data, archivo, indent=4)
+
+    # Mostrar el contenido guardado para depuración
+    print("Contenido del archivo después de eliminar:", data)
+
+apuestas_actuales = {}
 
 async def procesar_apuestas():
     if not os.path.exists(apuestas_file) or os.stat(apuestas_file).st_size == 0:
@@ -156,10 +192,8 @@ def manejar_recompensa(usuario, cantidad_fichas):
     fichas = leer_fichas()
     if usuario in fichas:
         fichas[usuario] += cantidad_fichas
-        print(f"Se sumaron {cantidad_fichas} fichas a {usuario}. Total: {fichas[usuario]}")
     else:
         fichas[usuario] = cantidad_fichas
-        print(f"Se creó el usuario {usuario} con {cantidad_fichas} Merlumonedas.")
     guardar_fichas(fichas)
 
 def obtener_fichas(user, fichas_file):
@@ -185,15 +219,17 @@ def actualizar_fichas(usuario, nuevas_fichas, fichas_file):
                 file.write(f"{name} {nuevas_fichas}\n")
             else:
                 file.write(line)
-
+    
 BROADCASTER_ID = '153299663'
-CLIENT_ID = 'xz9qt95r34bwb2kel4fkm7fuhwvppw'
+CLIENT_ID = 'gp762nuuoqcoxypju8c569th9wz7q5'
 TOKEN= 'bgndnm67gp1m8czmq8i01jcxhoajyj'
-CLIENT_SECRET = 'exlnw27fjmubuj0zggaix3tv1zqjqv'
+REFRESH_TOKEN = 'fso06nysheb9yjlcqp1tuga9s80hrcq3b6xaj554uivu0y0chv'
+CLIENT_SECRET = 'e9ja811yft2iban1xuqdvyxepbc85v'
+ACCESS_TOKEN = 'w2kquwqfon3730122hc2cl3zuc1jgb'
 
 bot = commands.Bot(
-    irc_token = 'oauth:77vdufk8u5z2dehk0a1dhqi8c2v8in',
-    client_id = 'xz9qt95r34bwb2kel4fkm7fuhwvppw',
+    irc_token = f'oauth:{ACCESS_TOKEN}',
+    client_id = CLIENT_ID,
     nick = 'soymerlu',
     prefix = '!',
     initial_channels = ['soymerlu'],
@@ -312,6 +348,19 @@ async def event_message(ctx):
         manejar_recompensa(usuario, cantidad_fichas)
         fichas = leer_fichas()
         await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
+
+@bot.event
+async def event_reward_redeemed(ctx, reward):
+    print(f"Recompensa canjeada: {reward.title} por {ctx.author.name}")
+
+    if reward.id == "01820b0c-0534-4ee5-be70-a2ca7ee3e9f0":
+        print(f"Recompensa detectada: {reward.title} por {ctx.author.name}")
+        reproducir_audio()
+        usuario = ctx.author.name
+        cantidad_fichas = 1000
+        manejar_recompensa(usuario, cantidad_fichas)
+        fichas = leer_fichas()
+        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tienes {fichas[usuario]} Merlumonedas.")
 
 @bot.command(name='maquinita')
 async def maquinita(ctx):
@@ -498,9 +547,84 @@ async def apostar(ctx):
     user_fichas -= cantidad
     actualizar_fichas(user, user_fichas, fichas_file)
 
+    if user not in apuestas_actuales:
+        apuestas_actuales[user] = []
+
+    apuestas_actuales[user].append({
+        'cantidad': cantidad,
+        'apuesta': apuesta,
+        'tipo_apuesta': tipo_apuesta
+    })
+
     guardar_apuesta(user, cantidad, apuesta)
     await ctx.send(f"Apuesta registrada de {user}. Te quedan {user_fichas} Merlumonedas.")
 
+@bot.command(name='repetir')
+async def repetir(ctx):
+    user = ctx.author.name
+    apuestas_guardadas = cargar_apuestas_guardadas()
+    
+    if user not in apuestas_guardadas:
+        await ctx.send("No tienes ninguna apuesta anterior registrada.")
+        return
+
+    ultimas_apuestas = apuestas_guardadas[user]
+
+    user_fichas = obtener_fichas(user, fichas_file)
+    if user_fichas is None:
+        await ctx.send("Usuario no encontrado en el archivo de fichas.")
+        return
+
+    total_apuestas = sum([apuesta['cantidad'] for apuesta in ultimas_apuestas])
+
+    if total_apuestas > user_fichas:
+        await ctx.send(f"No tienes suficientes fichas para repetir todas tus apuestas. Te faltan {total_apuestas - user_fichas} fichas.")
+        return
+
+    user_fichas -= total_apuestas
+    actualizar_fichas(user, user_fichas, fichas_file)
+
+    if user not in apuestas_actuales:
+        apuestas_actuales[user] = []
+
+    apuestas_actuales[user].extend(ultimas_apuestas)
+
+    for apuesta in ultimas_apuestas:
+        guardar_apuesta(user, apuesta['cantidad'], apuesta['apuesta'])
+
+    await ctx.send(f"Has repetido tus últimas {len(ultimas_apuestas)} apuestas. Te quedan {user_fichas} Merlumonedas.")
+
+@bot.command(name='guardar')
+async def guardar(ctx):
+    user = ctx.author.name
+    apuestas_guardadas = cargar_apuestas_guardadas()
+
+    if user not in apuestas_actuales or len(apuestas_actuales[user]) == 0:
+        await ctx.send("No tienes apuestas actuales para guardar.")
+        return
+
+    eliminar_usuario(user)
+    apuestas_guardadas[user] = apuestas_actuales[user]
+    guardar_apuestas_guardadas(apuestas_guardadas)
+
+    await ctx.send(f"Tus {len(apuestas_actuales[user])} apuestas han sido guardadas.")
+    
+    apuestas_actuales[user] = []
+
+@bot.command(name='misapuestas')
+async def misapuestas(ctx):
+    user = ctx.author.name
+    apuestas_guardadas = cargar_apuestas_guardadas()
+
+    if user not in apuestas_guardadas:
+        await ctx.send("No tienes apuestas guardadas.")
+        return
+
+    apuestas = apuestas_guardadas[user]
+    mensaje = f"Tienes {len(apuestas)} apuestas guardadas: " + ", ".join([f"{a['cantidad']} al {a['apuesta']}" for a in apuestas])
+    
+    await ctx.send(mensaje)
+   
 @bot.command(name='tragamonedas')
 async def tragamonedas(ctx):
     user = ctx.author.name
@@ -547,12 +671,16 @@ async def tragamonedas(ctx):
 
     actualizar_fichas(user, user_fichas, fichas_file)
 
+@bot.command(name='ruleta')
+async def ruleta(ctx):
+    await ctx.send(f'Los comandos de la Ruleta son: !estadisticas, !apostar (cantidad) (numero o Rojo/Negro), !repetir (repite tus apuestas guardadas), !guardar (guarda tus ultimas apuestas), !misapuestas')
+
 @bot.command(name='casino')
 async def casino(ctx):
-    await ctx.send(f'Los comandos de casino son: !merlumonedas, !estadisticas, !apostar (cantidad) (numero o Rojo/Negro) !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
+    await ctx.send(f'Los comandos de casino son: !merlumonedas, !ruleta, !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
                    
 @bot.command(name='comandos')
 async def comandos(ctx):
-    await ctx.send(f'Los comandos son: !casino, !reembolso, !memide, !pajin, !simp, !facha, !tontito, !redes, !dc, !emotes, !opgg')
+    await ctx.send(f'Los comandos son: !casino, !ruleta, !reembolso, !memide, !pajin, !simp, !facha, !tontito, !redes, !dc, !emotes, !opgg')
 
 bot.run()
