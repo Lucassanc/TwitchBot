@@ -6,6 +6,9 @@ import asyncio
 import os
 import pygame
 
+directorio_actual = os.path.dirname(os.path.abspath(__file__))
+os.chdir(directorio_actual)
+
 pygame.mixer.init()
 
 apuestas_file = 'Ruleta/apuestas.txt'
@@ -23,28 +26,6 @@ def cargar_apuestas_guardadas():
 def guardar_apuestas_guardadas(apuestas_guardadas):
     with open(APUESTAS_FILE, 'w') as file:
         json.dump(apuestas_guardadas, file)
-
-def eliminar_usuario(user):
-    # Cargar el archivo JSON
-    with open(APUESTAS_FILE, 'r') as archivo:
-        data = json.load(archivo)
-
-    # Mostrar el contenido cargado para depuración
-    print("Contenido del archivo antes de eliminar:", data)
-
-    # Verificar si el usuario existe y vaciar su información
-    if user in data:
-        data[user] = []  # Vaciar la información del usuario
-        print(f"Información del usuario '{user}' ha sido vaciada.")
-    else:
-        print(f"El usuario '{user}' no existe en el archivo.")
-
-    # Guardar el archivo JSON actualizado
-    with open(APUESTAS_FILE, 'w') as archivo:
-        json.dump(data, archivo, indent=4)
-
-    # Mostrar el contenido guardado para depuración
-    print("Contenido del archivo después de eliminar:", data)
 
 apuestas_actuales = {}
 
@@ -236,7 +217,6 @@ bot = commands.Bot(
 )
 
 cosas = [ "oso de peluche", "reloj", "oro", "caca", "carbon", "waifu", "la novia de cesur", "la mama de santi", "masitas", "nada", "lentes", "boleto dorado a la fabrica", "vandal", "celular", "nariz michael jackson", "manos de peron", "ganas de vivir", "nft", "bitcoin", "mate", "droga", "las piernas de maradona", "rei chiquita", "una novia", "un abrazo", "descuento en penes de goma", "jamon crudo", "papas fritas", "un ventilador liliana", "un cafecito de Moni Argento", "una gorreada", "la locura impredecible de Jinx", "a Batman", "muñeco inflable de Henry Cavill", "cabeza de Exodia", "brazo derecho de Exodia", "brazo izquierdo de Exodia", "pierna derecha de Exodia", "pierna izquierda de Exodia", "dragon de ojos azules", "la esfera del dragon 1", "la esfera del dragon 2", "la esfera del dragon 3", "la esfera del dragon 4", "la esfera del dragon 5", "la esfera del dragon 6", "la esfera del dragon 7", "las Islas Malvinas", "la tortuga de Buscando a Nemo", "a Calamardo", "una pata de palo", "1kg de helado de Cesur", "un depto en New York", "un depto en Once", "un Martin Fierro", "una pata de conejo", "un conejo sin una pata", "a Pepinillo Rick", "un alfajor de Malphite", "un Dementor", "un Demogorgon", "a Charmander", "a Bulbasaur", "a Squirtle", "la Copa del Mundial", "un gorrito de Eve", "un insulto de Eve", "un insulto de Cesur", "un timeout de 60s", "una loli", "una estrella para Boca", "un vino en carton", "una cumbiancha", "25g de merca", "un porrito",  "un mouse gaming", "un teclado mecanico", "un ban por 15 minutos", "una trompada", "un bife con papas", "el amor de tus padres", "una foto teta", "una nude", "una lofi girl estudiosa", "un objeto que no era pastel", "un pastel que no era objeto", "una referencia de Jojo", "una pc gamer", "una bolinet", "la tercera ☆☆☆", "una pala", "un follow en Instagram", "un follow en Twitter", "un follow en Twitch", "un gato", "un perro", "un game de lol conmigo", "un game de valorant conmigo", "un game de cs conmigo", "un game del juego que quieras conmigo", "un sombrero vaquero", "una cita con bts", "una rtx 4090", "una billetera vacia", "una billetera con plata", "una latita de coca", "1 dolar", "una enfermedad terminal", "la cura de una enfermedad terminal", "a Messi Chiquito", "una Pizza con Piña", "una Empanada de Carne Con Pasas", "la Empanada de tu Vieja", "el Choripan de tu Viejo", "un Sugar Daddy", "una Sugar Mommy", "un Beso", 'la Patagonia', 'una Coca Cola', 'un Ibuprofeno', 'el cadaver de la novia', 'un partido de fubol', 'a Messi Chiquito', 'un ticket para ver un video', 'un ticker para ver una peli', 'un viaje a Europa', 'un viaje a Africa', 'un viaje a Japon', 'un viaje a la concha de tu heraman', 'un raid', 'un insulto gratis a Merlu', 'un puchito con coquita', 'un barquito', 'un bombardeo gratis', 'el Monumental', 'la Bombonera', 'el Cilindro de Avellaneda', 'el Libertadores de America', 'un golpe militar', 'un ticket para agregar un item a la maquinita', 'un ticket para chuparme un huevo', 'GTA 6', 'a Elon Musk', 'el pajarito de Twitter', 'a Javier Milei', 'a Ricardo Fort', 'a Luis Miguel', 'un evento canonico', 'un evento no canonico', 'un ticket para mostrar tu talento', 'un ticket para contarme un chiste']
-palabra = ['parada', 'dormida']
 galletitas = ['9 de oro', 'don satur', 'oreo', 'terrabusi', 'surtidas', 'sonrisas', 'diversion', 'pepitos', 'opera', 'macuca', 'club social', 'pitusas', 'rex', 'saladix', 'fauna', 'criollitas', 'coquitas', 'mana', 'rumba', 'formis', 'chocolinas', 'macucas']
 numeros = ['1','2','3','4','5','6']
 caras = ['cara', 'cruz']
@@ -257,65 +237,12 @@ RECOMPENSA_OBJETIVO = 'Cargar Casino'
 async def event_ready():
     bot.loop.create_task(girar_ruleta_periodicamente())
     print(f'{bot.nick} está listo para girar la ruleta.')
-    print('Estamos listos')
 
 @bot.event
 async def event_message(ctx):
     await bot.handle_commands(ctx)
 
     print(ctx.raw_data)
-
-    if 'hola' in ctx.content.lower():
-        await ctx.channel.send(f'Hola {ctx.author.name}, gracias por pasarte por el directo bienvenid@ 🎉')
-
-    if 'todas' == ctx.content.lower():
-         await ctx.channel.send(f'PUTAS')
-
-    if 'todos' == ctx.content.lower():
-         await ctx.channel.send(f'FACHA EZWink')
-
-    if 'terere' in ctx.content.lower():
-        await ctx.channel.send(f'{ctx.author.name} Terere? Sos trolo?')
-
-    if 'masitas' in ctx.content.lower():
-        await ctx.channel.send(f'{ctx.author.name} Se dice GA LLE TI TAS')
-
-    if 'ahi lo tenes' in ctx.content.lower():
-        await ctx.channel.send(f'Al pelotudo')
-
-    if 'pedilo' in ctx.content.lower():
-        await ctx.channel.send(f'⠀⠀⢸⡿⠿⣷⡄⣿⠿⠿⠟⢰⣿⠿⢷⣆⢰⡇⢰⡇⠀⠀⠀⣴⠿⠷⣦⠀⠀⠀ ⠀⠀⢸⣧⣤⡿⠃⣿⡶⠶⠆⢸⣿⠀⠀⣿⢸⡇⢸⡇⠀⠀⢸⡏⠀⠀⣿⡇⠀⠀ ⠀⠀⢸⡇⠀⠀⠀⣿⣤⣤⣤⢸⣿⣤⣴⠟⢸⡇⢸⣧⣤⣤⠈⢿⣤⣴⡿⠁')
-    
-    if 'en la primera' in ctx.content.lower():
-        await ctx.channel.send(f'En la primera Era, en la primera batalla, la primera vez que las sombras se alargaron, alguien resistió. Consumido por las ascuas del armagedón. Su alma ardió en los fuegos del infierno y, demasiado corrupto para la ascensión, escogió la senda del tormento perpetuo, No halló la paz en su voraz odio y, con su sangre hirviendo,')
-        await ctx.channel.send(f'recorrio las llanuras del Umbral para vengarse de los señores oscuros que tanto daño le hicieron. Portaba la corona de los Centinelas de la noche. Y los que probaron su espada le llamaron...Asesino de la Muerte.')
-
-    if 'crazy?' in ctx.content.lower():
-        await ctx.channel.send(f'Crazy? I Was Crazy Once. They Locked Me In A Room. A Rubber Room. A Rubber Room With Rats. And Rats Make Me Crazy.')
-    
-    if 'es confuso verdad?' in ctx.content.lower():
-        await ctx.channel.send(f'sin embargo sabes perfectamente cuando estás mal, todo tu cuerpo física y mentalmente te lo hace saber, te notas flojo con pensamientos fatalistas esa sensación que todo está perdido, qué ya nada será como antes, te torturas recordando una vivencia pasada aleatoria en aquel momento ni siquiera parecía un buen momento pero comparado como te sientes ahora podría incluso decirse que... Fuiste feliz sin saberlo')
-    
-    if 'belico' in ctx.content.lower():
-        await ctx.channel.send(f'BELICO: De la guerra o relacionado con la lucha armada.')
-
-    if 'nashe' in ctx.content.lower():
-        await ctx.channel.send(f' ⣿⣧⡈⠙⠿⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⢹⠿⣿ ⣿⣿⣿⣷⣶⡀⠿⠿⣿⣿⣿⣿⣿⣿⡇⠐⠂⢒⡢ ⣿⣿⣿⣿⣿⣿⣆⠀⠈⢻⣿⣿⣿⣿⣿⡆⢈⣿⣿ ⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠙⠻⢻⢿⣿⠷⢠⢽⣿ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⡀⠁⠀⢘⣱⣍⠿⣾⢿ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⢉⢷⣌⠳ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⠀⠀⠋⠽⠶ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⣠⡀⠀⠀⠀⠐ ⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠏⠁⠀⠈⠀⠅⠶⠲.')
-    
-    if 'ks' in ctx.content.lower():
-        await ctx.channel.send(f'Nuestra Kill. ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣀⣀⣀⠀⠻⣷⣄ ⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⡿⠋⠀⠀⠀⠹⣿⣦⡀ ⠀⠀⢀⣴⣿⣿⣿⣿⣏⠀⠀⠀⠀⠀⠀⠀⢹⣿⣧ ⠀⠀⠙⢿⣿⡿⠋⠻⣿⣿⣦⡀⠀⠀⠀⢸⣿⣿⡆ ⠀⠀⠀⠀⠉⠀⠀⠀⠈⠻⣿⣿⣦⡀⠀⢸⣿⣿⡇ ⠀⠀⠀⠀⢀⣀⣄⡀⠀⠀⠈⠻⣿⣿⣶⣿⣿⣿⠁ ⠀⠀⠀⣠⣿⣿⢿⣿⣶⣶⣶⣶⣾⣿⣿⣿⣿⡁ ⢠⣶⣿⣿⠋⠀⠀⠉⠛⠿⠿⠿⠿⠿⠛⠻⣿⣿⣦⡀ ⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⡿')
-
-    if 'el mas grande' in ctx.content.lower():
-        await ctx.channel.send(f' ⠀⠀⠀⣠⡾⠛⠶⠦⣤⣄⣀⣀⣀⣀⣀⣀⣀⣠⣤⠴⠶⡛⢷⣄⠀⠀⠀ ⠀⣠⡾⠋⠀⠀⠀⠀⠀⠀⠈⠉⠉⢉⣭⣭⣥⣴⣶⣶⣿⣿⣦⡙⢷⣄⠀ ⣴⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⠝⣦ ⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢐⡛⣛⣛⡛⠿⢿⣿⣿⣿⣿⣿⣿⠃⣰⠃ ⠀⢹⡄⠀⠀⠀⠀⠀⢀⣴⡾⠿⡃⣿⡟⣿⡆⣦⡙⢿⣿⣿⣿⠃⢀⡏⠀ ⠀⠘⣷⠀⠀⠀⠀⣰⡿⢋⣴⣿⡇⣿⡇⣿⡇⣿⣿⣆⠹⡿⠁⠀⣼⠃⠀ ⠀⠀⢿⠀⠀⠀⢰⣿⢡⣿⠋⢸⡇⣿⡇⣿⡇⣿⡏⣿⡆⠁⠀⠀⡿⠀⠀ ⠀⠀⢸⡀⠀⠀⢸⣿⢸⣿⠿⢿⡇⣿⡇⣿⡇⣿⡇⣿⡇⠀⠀⠀⡇⠀⠀ ⠀⠀⢸⡇⠀⢠⠈⣿⡜⢿⡆⢸⡇⣿⣷⣿⠇⣿⣷⡿⠁⠀⠀⢸⡇⠀⠀ ⠀⠀⠈⣇⢠⣿⣷⡘⢿⣮⡃⠸⠇⣿⡿⣷⡀⣿⡏⠀⠀⠀⠀⢸⠁⠀⠀ ⠀⠀⠀⢿⠘⣿⣿⣿⣦⣙⠻⠷⡆⣿⡇⠻⠗⠋⠀⠀⠀⠀⠀⡿⠀⠀⠀ ⠀⠀⠀⠸⣧⢹⣿⣿⣿⣿⣷⣶⣶⣤⡶⠂⠀⠀⠀⠀⠀⠀⣼⠇⠀⠀⠀ ⠀⠀⠀⠀⠹⣆⢿⣿⣿⣿⣿⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⣰⠏⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠹⣆⠻⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⣠⠏⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠘⢷⡙⢿⣿⡟⠁⠀⠀⠀⠀⠀⢀⡼⠃⠀⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠛⢦⣍⠀⠀⠀⠀⠀⣀⡴⠛⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠳⢦⣤⡴⠞⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀')
-
-    if 'pecho frio' in ctx.content.lower():
-        await ctx.channel.send(f' ⠀⠀⠀⠀⡀⠐⢀⣤⣀⠁⠂⠠⢀⣀⣀⣀⡀⠄⠐⠈⣀⣤⡀⠂⢀⠀⠀⠀⠀ ⠀⢀⠀⠀⣠⣴⣿⣟⣿⣿⣶⣦⣤⣤⣤⣤⣤⣴⣶⣿⣿⣻⣿⣦⣄⠀⠀⡀⠀ ⡌⢀⣤⣿⣫⣿⣟⣿⣟⣻⣿⣻⣿⣛⣿⣛⣿⣟⣿⣟⣻⣿⣻⣿⣝⣿⣤⡈⢡ ⡇⢸⣿⣙⣿⣏⣿⣏⣿⣟⣹⣿⣻⣿⣛⣿⣟⣿⣟⣻⣿⣹⣿⣹⣿⣋⣿⡇⠸ ⠀⠸⣿⣏⣿⣏⣽⣯⣻⣿⣹⣿⣩⣿⣉⣿⣍⣿⣏⣿⣿⣽⣿⣻⣿⣙⣿⠇⠀ ⢀⠀⣿⣿⠟⠉⡉⠙⢿⣿⣏⠉⠉⢹⣿⣟⠉⠉⠉⠻⣿⣿⡏⠉⠉⣿⣿⠀⠀ ⠘⡀⢻⣿⠀⠀⣿⣶⣾⣿⠇⢠⡀⠸⣿⣿⠀⠘⠃⠠⣿⣿⣿⠀⢸⣿⡿⢀⠇ ⠀⠁⠘⣿⡀⠀⠛⠀⣸⡏⠀⢴⣶⠀⠻⡟⠀⠘⠃⢀⣇⠀⠙⠀⣸⣿⠃⠘⠀ ⠀⠘⠀⢻⣿⣿⣿⣿⢿⣿⡿⣿⣿⢿⣿⡿⣿⣿⢿⣿⡿⣿⣿⢿⣿⡟⠀⠃⠀ ⠀⠀⠠⠀⢿⣿⢿⣿⣿⢿⣿⡿⣿⣿⠿⣿⣿⢿⣿⡿⣿⣿⡿⣿⡿⠀⡔⠀⠀ ⠀⠀⠀⢀⠈⢿⣾⡿⣿⣿⢿⣿⣟⣻⣿⣟⣻⣿⡿⣿⣿⢿⣷⡿⠁⡠⠀⠀⠀ ⠀⠀⠀⠀⠂⠈⢿⣿⣟⣿⣿⣟⣿⣿⣿⣿⣿⣻⣿⣿⣻⣿⡿⠁⠐⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⠻⣿⣟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣻⣿⠟⠀⠔⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⢄⠘⢻⣿⣧⣿⢿⣶⡿⢿⣽⣿⡟⠃⠠⠂⠀⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠁⠄⠘⠻⣿⣿⣛⣿⣿⠟⠃⠠⠈⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠠⠈⠙⠿⠋⢁⠄⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀')
-
-    if 'puedo jugar' in ctx.content.lower():
-        await ctx.channel.send(f'Merlu solo juega con sus amigos')
-    
-    if 'warhammer' in ctx.content.lower():
-        await ctx.channel.send(f'Warhammer 40k es una franquicia de ciencia ficción y fantasía oscura para adultos o grimdark como suele ser referido, fundada en el año 1987 creada por la compañía británica Games Workshop. Esta inicio como una adaptación de otro gran título de Games Workshop Warhammer Fantasy')
 
     if "custom-reward-id=01820b0c-0534-4ee5-be70-a2ca7ee3e9f0" in ctx.raw_data:
         reproducir_audio()
@@ -349,19 +276,6 @@ async def event_message(ctx):
         fichas = leer_fichas()
         await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
 
-@bot.event
-async def event_reward_redeemed(ctx, reward):
-    print(f"Recompensa canjeada: {reward.title} por {ctx.author.name}")
-
-    if reward.id == "01820b0c-0534-4ee5-be70-a2ca7ee3e9f0":
-        print(f"Recompensa detectada: {reward.title} por {ctx.author.name}")
-        reproducir_audio()
-        usuario = ctx.author.name
-        cantidad_fichas = 1000
-        manejar_recompensa(usuario, cantidad_fichas)
-        fichas = leer_fichas()
-        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tienes {fichas[usuario]} Merlumonedas.")
-
 @bot.command(name='maquinita')
 async def maquinita(ctx):
     cantidad = 1000
@@ -382,41 +296,6 @@ async def maquinita(ctx):
 
     await ctx.send(f'{ctx.author.name} a sacado {random.choice(cosas)}')
 
-@bot.command(name='sorteo')
-async def sorteo(ctx):
-    await ctx.send(f'{ctx.author.name} no maestro, no se viene sorteo')
-
-@bot.command(name='simp')
-async def pajin(ctx):
-    await ctx.send(f'Hoy {ctx.author.name} esta un {random.randint(1, 100)}% simp peepoSIMP')
-
-@bot.command(name='pajin')
-async def pajin(ctx):
-    await ctx.send(f'Hoy {ctx.author.name} esta un {random.randint(1, 100)}% pajin Despairge')
-
-@bot.command(name='facha')
-async def facha(ctx):
-    await ctx.send(f'Hoy {ctx.author.name} esta un {random.randint(1, 100)}% facha EZWink')
-
-@bot.command(name='tontito')
-async def tontito(ctx):
-    await ctx.send(f'Hoy {ctx.author.name} está un {random.randint(1, 100)}% tontito Okayge')
-
-@bot.command(name='reembolso')
-async def reembolso(ctx):
-    await ctx.send(f'No te reembolso una pija, jodete')
-
-@bot.command(name='redes')
-async def redes(ctx):
-    await ctx.send(f'Ig: instagram.com/merlusoy ¬¬¬¬ Tiktok: tiktok.com/@iammerlu ¬¬¬¬ Twitter: twitter.com/MerLucassc')
-
-@bot.command(name='dc')
-async def dc(ctx):
-    await ctx.send(f'Entra al server pibardo https://discord.gg/ebqPwPHyDh')
-
-@bot.command(name='memide')
-async def memide(ctx):
-    await ctx.send(f'A {ctx.author.name} le mide {random.randint(1, 45)}cm {random.choice(palabra)}')
 
 @bot.command(name='galletita')
 async def galletita(ctx):
@@ -437,13 +316,6 @@ async def galletita(ctx):
     actualizar_fichas(user, user_fichas, fichas_file)
     await ctx.send(f'{ctx.author.name} es un paquete de {random.choice(galletitas)}')
 
-@bot.command(name='emotes')
-async def emotes(ctx):
-    await ctx.send(f'Si no puedes ver FeelsDankMan ni RareParrot y solo ves oalabras es porque no tienes la extensión de 7tv. La puedes descargar desde aquí: https://7tv.app AYAYA')
-
-@bot.command(name='opgg')
-async def comandos(ctx):
-    await ctx.send(f'Opgg main: https://www.op.gg/summoners/kr/Hide%20on%20bush-KR1')
 
 @bot.command(name='rusa')
 async def comandos(ctx):
@@ -592,7 +464,7 @@ async def repetir(ctx):
     for apuesta in ultimas_apuestas:
         guardar_apuesta(user, apuesta['cantidad'], apuesta['apuesta'])
 
-    await ctx.send(f"Has repetido tus últimas {len(ultimas_apuestas)} apuestas. Te quedan {user_fichas} Merlumonedas.")
+    await ctx.send(f"{user} repetiste tus {len(ultimas_apuestas)} apuestas guardadas. Gastaste {total_apuestas}, Te quedan {user_fichas} Merlumonedas.")
 
 @bot.command(name='guardar')
 async def guardar(ctx):
@@ -603,7 +475,7 @@ async def guardar(ctx):
         await ctx.send("No tienes apuestas actuales para guardar.")
         return
 
-    eliminar_usuario(user)
+
     apuestas_guardadas[user] = apuestas_actuales[user]
     guardar_apuestas_guardadas(apuestas_guardadas)
 
@@ -679,8 +551,5 @@ async def ruleta(ctx):
 async def casino(ctx):
     await ctx.send(f'Los comandos de casino son: !merlumonedas, !ruleta, !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
                    
-@bot.command(name='comandos')
-async def comandos(ctx):
-    await ctx.send(f'Los comandos son: !casino, !ruleta, !reembolso, !memide, !pajin, !simp, !facha, !tontito, !redes, !dc, !emotes, !opgg')
 
 bot.run()
