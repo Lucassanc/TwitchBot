@@ -1,31 +1,33 @@
 from twitchio.ext import commands
-import random
 import json
 import subprocess
 import asyncio
 import os
-import pygame
+import requests
 
 directorio_actual = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_actual)
 
-pygame.mixer.init()
-
 apuestas_file = 'Ruleta/apuestas.txt'
 fichas_file = 'FichasCasino.txt'
 ganadores_file = 'Ruleta/ganadores.txt'
-APUESTAS_FILE = 'Ruleta/apuestas_guardadas.json'
+apuestas_archivo = 'Ruleta/apuestas_guardadas.json'
+
+def extraer_codigo(url):
+    if "https://static-cdn.jtvnw.net/jtv_user_pictures/" in url:
+        return url.split("/")[-1]
+    return None
 
 def cargar_apuestas_guardadas():
-    if os.path.exists(APUESTAS_FILE):
-        with open(APUESTAS_FILE, 'r') as file:
+    if os.path.exists(apuestas_archivo):
+        with open(apuestas_archivo, 'r') as file:
             return json.load(file)
     else:
         return {}
 
 def guardar_apuestas_guardadas(apuestas_guardadas):
-    with open(APUESTAS_FILE, 'w') as file:
-        json.dump(apuestas_guardadas, file)
+    with open(apuestas_archivo, 'w') as file:
+        json.dump(apuestas_guardadas, file, indent=4)
 
 apuestas_actuales = {}
 
@@ -73,19 +75,9 @@ async def procesar_apuestas():
     with open(apuestas_file, 'w') as file:
         file.write("")
 
-async def girar_ruleta_periodicamente():
-    while True:
-        await asyncio.sleep(120)
-        await procesar_apuestas()
-        
-def reproducir_audio():
-    archivo_audio = "fichas.mp3"
-    pygame.mixer.music.load(archivo_audio)
-    pygame.mixer.music.play()
-
-def guardar_apuesta(user, cantidad, apuesta):
+def guardar_apuesta(user, cantidad, apuesta, foto_perfil):
     with open(apuestas_file, 'a') as file:
-        file.write(f"{user},{cantidad},{apuesta}\n")
+        file.write(f"{user},{cantidad},{apuesta},{foto_perfil}\n")
 
 def leer_ganadores(archivo):
     with open(archivo, 'r') as f:
@@ -156,27 +148,6 @@ def obtener_estadisticas():
     except Exception as e:
         return f"Ocurrió un error inesperado: {e}"
 
-def leer_fichas():
-    fichas = {}
-    with open(RUTA_ARCHIVO, 'r') as archivo:
-        for linea in archivo:
-            usuario, cantidad = linea.strip().split()
-            fichas[usuario] = int(cantidad)
-    return fichas
-
-def guardar_fichas(fichas):
-    with open(RUTA_ARCHIVO, 'w') as archivo:
-        for usuario, cantidad in fichas.items():
-            archivo.write(f"{usuario} {cantidad}\n")
-
-def manejar_recompensa(usuario, cantidad_fichas):
-    fichas = leer_fichas()
-    if usuario in fichas:
-        fichas[usuario] += cantidad_fichas
-    else:
-        fichas[usuario] = cantidad_fichas
-    guardar_fichas(fichas)
-
 def obtener_fichas(user, fichas_file):
     with open(fichas_file, 'r') as file:
         lines = file.readlines()
@@ -204,9 +175,9 @@ def actualizar_fichas(usuario, nuevas_fichas, fichas_file):
 BROADCASTER_ID = '153299663'
 CLIENT_ID = 'gp762nuuoqcoxypju8c569th9wz7q5'
 TOKEN= 'bgndnm67gp1m8czmq8i01jcxhoajyj'
-REFRESH_TOKEN = 'fso06nysheb9yjlcqp1tuga9s80hrcq3b6xaj554uivu0y0chv'
+REFRESH_TOKEN = '720hsds8o76ckn912okrsk6re7kjbt33erqux3vktivo7f3811'
 CLIENT_SECRET = 'e9ja811yft2iban1xuqdvyxepbc85v'
-ACCESS_TOKEN = 'w2kquwqfon3730122hc2cl3zuc1jgb'
+ACCESS_TOKEN = 'r9p9tth3uzwl9sj9u8s3q91asx0ybw'
 
 bot = commands.Bot(
     irc_token = f'oauth:{ACCESS_TOKEN}',
@@ -216,164 +187,36 @@ bot = commands.Bot(
     initial_channels = ['soymerlu'],
 )
 
-cosas = [ "oso de peluche", "reloj", "oro", "caca", "carbon", "waifu", "la novia de cesur", "la mama de santi", "masitas", "nada", "lentes", "boleto dorado a la fabrica", "vandal", "celular", "nariz michael jackson", "manos de peron", "ganas de vivir", "nft", "bitcoin", "mate", "droga", "las piernas de maradona", "rei chiquita", "una novia", "un abrazo", "descuento en penes de goma", "jamon crudo", "papas fritas", "un ventilador liliana", "un cafecito de Moni Argento", "una gorreada", "la locura impredecible de Jinx", "a Batman", "muñeco inflable de Henry Cavill", "cabeza de Exodia", "brazo derecho de Exodia", "brazo izquierdo de Exodia", "pierna derecha de Exodia", "pierna izquierda de Exodia", "dragon de ojos azules", "la esfera del dragon 1", "la esfera del dragon 2", "la esfera del dragon 3", "la esfera del dragon 4", "la esfera del dragon 5", "la esfera del dragon 6", "la esfera del dragon 7", "las Islas Malvinas", "la tortuga de Buscando a Nemo", "a Calamardo", "una pata de palo", "1kg de helado de Cesur", "un depto en New York", "un depto en Once", "un Martin Fierro", "una pata de conejo", "un conejo sin una pata", "a Pepinillo Rick", "un alfajor de Malphite", "un Dementor", "un Demogorgon", "a Charmander", "a Bulbasaur", "a Squirtle", "la Copa del Mundial", "un gorrito de Eve", "un insulto de Eve", "un insulto de Cesur", "un timeout de 60s", "una loli", "una estrella para Boca", "un vino en carton", "una cumbiancha", "25g de merca", "un porrito",  "un mouse gaming", "un teclado mecanico", "un ban por 15 minutos", "una trompada", "un bife con papas", "el amor de tus padres", "una foto teta", "una nude", "una lofi girl estudiosa", "un objeto que no era pastel", "un pastel que no era objeto", "una referencia de Jojo", "una pc gamer", "una bolinet", "la tercera ☆☆☆", "una pala", "un follow en Instagram", "un follow en Twitter", "un follow en Twitch", "un gato", "un perro", "un game de lol conmigo", "un game de valorant conmigo", "un game de cs conmigo", "un game del juego que quieras conmigo", "un sombrero vaquero", "una cita con bts", "una rtx 4090", "una billetera vacia", "una billetera con plata", "una latita de coca", "1 dolar", "una enfermedad terminal", "la cura de una enfermedad terminal", "a Messi Chiquito", "una Pizza con Piña", "una Empanada de Carne Con Pasas", "la Empanada de tu Vieja", "el Choripan de tu Viejo", "un Sugar Daddy", "una Sugar Mommy", "un Beso", 'la Patagonia', 'una Coca Cola', 'un Ibuprofeno', 'el cadaver de la novia', 'un partido de fubol', 'a Messi Chiquito', 'un ticket para ver un video', 'un ticker para ver una peli', 'un viaje a Europa', 'un viaje a Africa', 'un viaje a Japon', 'un viaje a la concha de tu heraman', 'un raid', 'un insulto gratis a Merlu', 'un puchito con coquita', 'un barquito', 'un bombardeo gratis', 'el Monumental', 'la Bombonera', 'el Cilindro de Avellaneda', 'el Libertadores de America', 'un golpe militar', 'un ticket para agregar un item a la maquinita', 'un ticket para chuparme un huevo', 'GTA 6', 'a Elon Musk', 'el pajarito de Twitter', 'a Javier Milei', 'a Ricardo Fort', 'a Luis Miguel', 'un evento canonico', 'un evento no canonico', 'un ticket para mostrar tu talento', 'un ticket para contarme un chiste']
-galletitas = ['9 de oro', 'don satur', 'oreo', 'terrabusi', 'surtidas', 'sonrisas', 'diversion', 'pepitos', 'opera', 'macuca', 'club social', 'pitusas', 'rex', 'saladix', 'fauna', 'criollitas', 'coquitas', 'mana', 'rumba', 'formis', 'chocolinas', 'macucas']
-numeros = ['1','2','3','4','5','6']
-caras = ['cara', 'cruz']
-multiplicadores = {
-    "cereza": 1.2,
-    "uva": 1.5,
-    "sandia": 2,
-    "campana": 5,
-    "bar": 10,
-    "siete": 20,
-    "diamante": 100
-}
+def obtener_foto_perfil(username):
+    url = 'https://api.twitch.tv/helix/users'
+    headers = {
+        'Authorization': f'Bearer {ACCESS_TOKEN}',
+        'Client-Id': CLIENT_ID
+    }
+    params = {'login': username}
+    
+    response = requests.get(url, headers=headers, params=params)
 
-RUTA_ARCHIVO = 'FichasCasino.txt'
-RECOMPENSA_OBJETIVO = 'Cargar Casino'
+    if response.status_code == 200:
+        user_data = response.json()
+        
+        if 'data' in user_data and user_data['data']:
+            return user_data['data'][0]['profile_image_url']
+        else:
+            return 'No se encontró la información del usuario.'
+    else:
+        return f"Error en la solicitud: {response.status_code} - {response.text}"
+
+async def girar_ruleta_periodicamente():
+    while True:
+        await asyncio.sleep(120)
+        await procesar_apuestas()
 
 @bot.event
 async def event_ready():
     bot.loop.create_task(girar_ruleta_periodicamente())
     subprocess.Popen(['python', 'Ruleta\\tablero.py'])
-    print(f'{bot.nick} está listo para girar la ruleta.')
-
-@bot.event
-async def event_message(ctx):
-    await bot.handle_commands(ctx)
-
-    print(ctx.raw_data)
-
-    if "custom-reward-id=01820b0c-0534-4ee5-be70-a2ca7ee3e9f0" in ctx.raw_data:
-        reproducir_audio()
-        usuario = ctx.author.name
-        cantidad_fichas = 1000
-        manejar_recompensa(usuario, cantidad_fichas)
-        fichas = leer_fichas()
-        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
-    
-    if "custom-reward-id=e3c3eab5-e7c9-4cb0-a6d8-0ffcdfbd956e" in ctx.raw_data:
-        reproducir_audio()
-        usuario = ctx.author.name
-        cantidad_fichas = 5000
-        manejar_recompensa(usuario, cantidad_fichas)
-        fichas = leer_fichas()
-        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
-    
-    if "custom-reward-id=8c359347-df98-452c-ae0b-d7001dd7a779" in ctx.raw_data:
-        reproducir_audio()
-        usuario = ctx.author.name
-        cantidad_fichas = 10000
-        manejar_recompensa(usuario, cantidad_fichas)
-        fichas = leer_fichas()
-        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
-
-    if "custom-reward-id=5e12af84-bd3c-4c6a-b63a-93b95017ecfe" in ctx.raw_data:
-        reproducir_audio()
-        usuario = ctx.author.name
-        cantidad_fichas = 50000
-        manejar_recompensa(usuario, cantidad_fichas)
-        fichas = leer_fichas()
-        await ctx.channel.send(f"{usuario}, se han añadido {cantidad_fichas} Merlumonedas a tu cuenta. En total tenes {fichas[usuario]} Merlumonedas.")
-
-@bot.command(name='maquinita')
-async def maquinita(ctx):
-    cantidad = 1000
-    user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
-
-    user_fichas = obtener_fichas(user, fichas_file)
-    if user_fichas is None:
-        await ctx.send("Usuario no encontrado en el archivo de fichas.")
-        return
-
-    if cantidad > user_fichas:
-        await ctx.send("No tienes suficientes fichas para apostar.")
-        return
-    
-    user_fichas -= cantidad
-    actualizar_fichas(user, user_fichas, fichas_file)
-
-    await ctx.send(f'{ctx.author.name} a sacado {random.choice(cosas)}')
-
-
-@bot.command(name='galletita')
-async def galletita(ctx):
-    cantidad = 1000
-    user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
-
-    user_fichas = obtener_fichas(user, fichas_file)
-    if user_fichas is None:
-        await ctx.send("Usuario no encontrado en el archivo de fichas.")
-        return
-
-    if cantidad > user_fichas:
-        await ctx.send("No tienes suficientes fichas para apostar.")
-        return
-    
-    user_fichas -= cantidad
-    actualizar_fichas(user, user_fichas, fichas_file)
-    await ctx.send(f'{ctx.author.name} es un paquete de {random.choice(galletitas)}')
-
-
-@bot.command(name='rusa')
-async def comandos(ctx):
-
-    cantidad = 1000
-    user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
-
-    user_fichas = obtener_fichas(user, fichas_file)
-    if user_fichas is None:
-        await ctx.send("Usuario no encontrado en el archivo de fichas.")
-        return
-
-    if cantidad > user_fichas:
-        await ctx.send("No tienes suficientes fichas para apostar.")
-        return
-    
-    bala = random.choice(numeros)
-    if bala == '3':
-        user_fichas = 0
-        await ctx.send(f'Perdiste todas tus fichas')
-    else:
-        user_fichas += user_fichas
-        await ctx.send(f'Duplicaste tus monedas')
-
-    actualizar_fichas(user, user_fichas, fichas_file)
-
-@bot.command(name='moneda')
-async def moneda(ctx):
-
-    cantidad = 1000
-    user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
-
-    user_fichas = obtener_fichas(user, fichas_file)
-    if user_fichas is None:
-        await ctx.send("Usuario no encontrado en el archivo de fichas.")
-        return
-
-    if cantidad > user_fichas:
-        await ctx.send("No tienes suficientes fichas para apostar.")
-        return
-    
-    cara = random.choice(caras)
-    if cara == 'cara':
-        user_fichas -= 1000
-        await ctx.send(f'Salio Cara, Perdiste 1000 fichas')
-    else:
-        user_fichas += 1000
-        await ctx.send(f'Salio Cruz, Ganaste 1000 fichas')
-
-    actualizar_fichas(user, user_fichas, fichas_file)
-
-@bot.command(name='merlumonedas')
-async def merlumonedas(ctx):
-    fichas = leer_fichas()
-    await ctx.send(f'{ctx.author.name} tenes: {fichas[ctx.author.name]} Merlumonedas.')
+    print(f'Ruleta lista.')
 
 @bot.command(name='estadisticas')
 async def estadisticas(ctx):
@@ -420,16 +263,20 @@ async def apostar(ctx):
     user_fichas -= cantidad
     actualizar_fichas(user, user_fichas, fichas_file)
 
+    foto_perfil = obtener_foto_perfil(user)
+    foto_perfil = extraer_codigo(foto_perfil)
+
     if user not in apuestas_actuales:
         apuestas_actuales[user] = []
 
     apuestas_actuales[user].append({
         'cantidad': cantidad,
         'apuesta': apuesta,
-        'tipo_apuesta': tipo_apuesta
+        'tipo_apuesta': tipo_apuesta,
+        'foto_perfil': foto_perfil
     })
 
-    guardar_apuesta(user, cantidad, apuesta)
+    guardar_apuesta(user, cantidad, apuesta, foto_perfil)
     await ctx.send(f"Apuesta registrada de {user}. Te quedan {user_fichas} Merlumonedas.")
 
 @bot.command(name='repetir')
@@ -448,7 +295,8 @@ async def repetir(ctx):
         await ctx.send("Usuario no encontrado en el archivo de fichas.")
         return
 
-    total_apuestas = sum([apuesta['cantidad'] for apuesta in ultimas_apuestas])
+    # Calcular el total de fichas que se necesitan para repetir las apuestas
+    total_apuestas = sum(int(apuesta.split(',')[1]) for apuesta in ultimas_apuestas)  # Cantidad de fichas apostadas
 
     if total_apuestas > user_fichas:
         await ctx.send(f"No tienes suficientes fichas para repetir todas tus apuestas. Te faltan {total_apuestas - user_fichas} fichas.")
@@ -460,28 +308,57 @@ async def repetir(ctx):
     if user not in apuestas_actuales:
         apuestas_actuales[user] = []
 
-    apuestas_actuales[user].extend(ultimas_apuestas)
+    for apuesta_str in ultimas_apuestas:
+        # Dividir la apuesta y obtener los datos
+        partes = apuesta_str.split(',')
+        cantidad = int(partes[1])  # La cantidad apostada
+        apuesta = partes[2]  # La apuesta (rojo, negro, número, etc.)
+        foto_perfil = partes[4]  # La foto de perfil
 
-    for apuesta in ultimas_apuestas:
-        guardar_apuesta(user, apuesta['cantidad'], apuesta['apuesta'])
+        # Agregar la apuesta a las apuestas actuales
+        apuestas_actuales[user].append({
+            'cantidad': cantidad,
+            'apuesta': apuesta,
+            'foto_perfil': foto_perfil
+        })
 
-    await ctx.send(f"{user} repetiste tus {len(ultimas_apuestas)} apuestas guardadas. Gastaste {total_apuestas}, Te quedan {user_fichas} Merlumonedas.")
+        # Llamar a la función para guardar la apuesta (esto puede variar según tu implementación)
+        guardar_apuesta(user, cantidad, apuesta, foto_perfil)
+
+    await ctx.send(f"{user}, repetiste tus {len(ultimas_apuestas)} apuestas guardadas. Gastaste {total_apuestas} fichas, te quedan {user_fichas} Merlumonedas.")
 
 @bot.command(name='guardar')
 async def guardar(ctx):
     user = ctx.author.name
-    apuestas_guardadas = cargar_apuestas_guardadas()
+    apuestas_guardadas = cargar_apuestas_guardadas()  # Cargar apuestas guardadas
 
+    # Verificar si el usuario tiene apuestas actuales
     if user not in apuestas_actuales or len(apuestas_actuales[user]) == 0:
         await ctx.send("No tienes apuestas actuales para guardar.")
         return
 
+    # Obtener el código de la foto del perfil desde la última apuesta actual
+    codigo_foto_perfil = None
+    for apuesta in apuestas_actuales[user]:
+        if 'foto_perfil' in apuesta:
+            codigo_foto_perfil = apuesta['foto_perfil'].split('/')[-1]  # Obtener solo el código de la foto
+            break  # Solo necesitamos el código una vez
 
-    apuestas_guardadas[user] = apuestas_actuales[user]
+    # Guardar las apuestas del usuario
+    if user not in apuestas_guardadas:
+        apuestas_guardadas[user] = []
+
+    for apuesta in apuestas_actuales[user]:
+        # Formatear la apuesta para guardarla en el JSON
+        apuesta_str = f"{user},{apuesta['cantidad']},{apuesta['apuesta']},{apuesta['tipo_apuesta']},{codigo_foto_perfil}"
+        apuestas_guardadas[user].append(apuesta_str)
+
+    # Guardar en el archivo JSON
     guardar_apuestas_guardadas(apuestas_guardadas)
 
     await ctx.send(f"Tus {len(apuestas_actuales[user])} apuestas han sido guardadas.")
-    
+
+    # Limpiar las apuestas actuales después de guardarlas
     apuestas_actuales[user] = []
 
 @bot.command(name='misapuestas')
@@ -497,59 +374,5 @@ async def misapuestas(ctx):
     mensaje = f"Tienes {len(apuestas)} apuestas guardadas: " + ", ".join([f"{a['cantidad']} al {a['apuesta']}" for a in apuestas])
     
     await ctx.send(mensaje)
-   
-@bot.command(name='tragamonedas')
-async def tragamonedas(ctx):
-    user = ctx.author.name
-    fichas_file = 'FichasCasino.txt'
-    user_fichas = obtener_fichas(user, fichas_file)
-    
-    if user_fichas is None:
-        await ctx.send("Usuario no encontrado en el archivo de fichas.")
-        return
-
-    cantidad = 1000
-    
-    if user_fichas < cantidad:
-        await ctx.send("No tienes suficientes fichas para jugar en la tragamonedas.")
-        return
-
-    user_fichas -= cantidad
-
-    await ctx.send("Girando el tragamonedas...")
-    subprocess.run(['python', 'Slot\\slot.py'])
-
-    resultado_file = 'Slot/resultado_slot.txt'
-    with open(resultado_file, 'r') as file:
-        lines = file.readlines()
-
-    resultado = lines[0].strip()
-    simbolos_linea = lines[1].strip()
-
-    simbolos = simbolos_linea.replace('Simbolos: ', '').split(', ')
-
-    if simbolos[0] == simbolos[1] == simbolos[2]:
-        simbolo_ganador = simbolos[0].split('/')[-1].replace('.png', '')
-
-        ganancia = cantidad * multiplicadores.get(simbolo_ganador, 1)
-
-        user_fichas += ganancia
-        await ctx.send(f"¡Felicidades {user}! Ganaste {ganancia} fichas. Simbolo ganador: {simbolo_ganador}.")
-    else:
-        simbolo1 = simbolos[0].split('/')[-1].replace('.png', '')
-        simbolo2 = simbolos[1].split('/')[-1].replace('.png', '')
-        simbolo3 = simbolos[2].split('/')[-1].replace('.png', '')
-        await ctx.send(f"Lo siento {user}, perdiste {cantidad} fichas. Resultado: {simbolo1}, {simbolo2}, {simbolo3}")
-
-
-    actualizar_fichas(user, user_fichas, fichas_file)
-
-@bot.command(name='ruleta')
-async def ruleta(ctx):
-    await ctx.send(f'Los comandos de la Ruleta son: !estadisticas, !apostar (cantidad) (numero o Rojo/Negro), !repetir (repite tus apuestas guardadas), !guardar (guarda tus ultimas apuestas), !misapuestas')
-
-@bot.command(name='casino')
-async def casino(ctx):
-    await ctx.send(f'Los comandos de casino son: !merlumonedas, !ruleta, !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
                    
 bot.run()

@@ -85,3 +85,8 @@
 13, Negro,
 1, Rojo,
 30, Rojo,
+29, Negro,
+24, Negro,
+8, Negro,
+29, Negro,
+6, Negro,

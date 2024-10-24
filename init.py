@@ -1,7 +1,6 @@
 import subprocess
 import os
 import signal
-import sys
 import time
 
 # Obtén el directorio actual donde está el archivo iniciador
@@ -10,7 +9,8 @@ directorio_actual = os.path.dirname(os.path.abspath(__file__))
 # Especifica los nombres de los archivos Python que deseas ejecutar
 archivos_a_ejecutar = [
     "Bot.py",
-    "BotComandos.py"
+    "BotComandos.py",
+    "BotCasino.py"
 ]
 
 # Crea una lista para almacenar los procesos

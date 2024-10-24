@@ -1,33 +1,33 @@
 import pygame
 import time
+import requests
+from io import BytesIO
 
 pygame.init()
 pygame.mixer.init()
 
-# Variables
 apuestas_file = 'Ruleta/apuestas.txt'
 WIDTH, HEIGHT = 400, 200
 screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SRCALPHA | pygame.NOFRAME)
 pygame.display.set_caption("Tablero Ruleta")
 
-# Cargar imágenes
 tablero_image = pygame.image.load("Ruleta/tableroruleta.png")
 tablero_rect = tablero_image.get_rect(center=(WIDTH // 2, HEIGHT // 2))
 
-ficha_image = pygame.image.load("Ruleta/ficha.png")
-ficha_image = pygame.transform.scale(ficha_image, (15, 15))
+# Cargar la imagen de la ficha original
+ficha_image_original = pygame.image.load("Ruleta/ficha.png")
+ficha_image_original = pygame.transform.scale(ficha_image_original, (15, 15))
 
-# Temporizador en minutos
-TIEMPO_INICIAL = 2 * 60  # 5 minutos en segundos
+TIEMPO_INICIAL = 2 * 60
 tiempo_restante = TIEMPO_INICIAL
-fuente_tiempo = pygame.font.SysFont(None, 30)  # Fuente para mostrar el tiempo
+fuente_tiempo = pygame.font.SysFont(None, 30)
 
 def leer_apuestas():
     apuestas = []
     with open(apuestas_file, "r") as file:
         for line in file:
-            jugador, cantidad, numero = line.strip().split(",")
-            apuestas.append((numero.strip(), int(cantidad)))  
+            jugador, cantidad, numero, foto_perfil = line.strip().split(",")
+            apuestas.append((numero.strip(), int(cantidad), foto_perfil.strip()))  
     return apuestas
 
 def obtener_posicion_ficha(opcion):
@@ -46,9 +46,9 @@ def obtener_posicion_ficha(opcion):
         '10': (136, 105),
         '11': (136, 70),
         '12': (136, 35),
-        '13': (158, 105),
-        '14': (158, 70),
-        '15': (158, 35),
+        '13': (160, 105),
+        '14': (160, 70),
+        '15': (160, 35),
         '16': (182, 105),
         '17': (182, 70),
         '18': (182, 35),
@@ -84,39 +84,62 @@ def mostrar_tiempo_restante(tiempo):
     render_texto_extra = fuente_tiempo.render(texto_extra, True, (255, 255, 255))
     render_tiempo = fuente_tiempo.render(texto_tiempo, True, (255, 255, 255))
     screen.blit(render_texto_extra, (WIDTH - 400, 0))
-    screen.blit(render_tiempo, (WIDTH - 225, 0))  # Mostrar en la esquina superior derecha
+    screen.blit(render_tiempo, (WIDTH - 225, 0))
 
-# Bucle principal
+def cargar_imagen_perfil(codigo):
+    if codigo.lower() == "none":
+        return None  # Si no hay foto de perfil, retornar None
+    url = f"https://static-cdn.jtvnw.net/jtv_user_pictures/{codigo}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        image = pygame.image.load(BytesIO(response.content)).convert_alpha()
+        return redondear_imagen(image)
+    return None
+
+def redondear_imagen(imagen):
+    # Crear una nueva superficie circular
+    ancho, alto = imagen.get_size()
+    circle_surface = pygame.Surface((ancho, alto), pygame.SRCALPHA)
+    pygame.draw.circle(circle_surface, (255, 255, 255), (ancho // 2, alto // 2), ancho // 2)
+    
+    # Combinar la imagen con la superficie circular
+    circle_surface.blit(imagen, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+    return pygame.transform.scale(circle_surface, (15, 15))  # Redimensionar a 15x15
+
 running = True
 ultimo_tiempo = time.time()
 
 while running:
-    # Calcular el tiempo transcurrido para actualizar el temporizador
     tiempo_actual = time.time()
     delta_tiempo = tiempo_actual - ultimo_tiempo
     ultimo_tiempo = tiempo_actual
     tiempo_restante -= delta_tiempo
 
     if tiempo_restante <= 0:
-        tiempo_restante = TIEMPO_INICIAL  # Reiniciar el temporizador
+        mostrar_tiempo_restante(0)
+        pygame.display.flip()
+        pygame.time.wait(8000)
+        tiempo_restante = TIEMPO_INICIAL
+        ultimo_tiempo = time.time()
 
-    # Dibujar el fondo y el tablero
     screen.fill((0, 0, 0))
     screen.blit(tablero_image, tablero_rect.topleft)
 
-    # Dibujar las fichas en las posiciones correctas
     apuestas = leer_apuestas()
-    for opcion, cantidad in apuestas:
+    for opcion, cantidad, codigo_imagen in apuestas:
         pos_x, pos_y = obtener_posicion_ficha(opcion)
+        ficha_image = cargar_imagen_perfil(codigo_imagen)
+
+        # Usar la imagen de ficha original si no se cargó una imagen de perfil
+        if ficha_image is None:
+            ficha_image = ficha_image_original
+            
         screen.blit(ficha_image, (pos_x, pos_y))
 
-    # Mostrar el tiempo restante en pantalla
     mostrar_tiempo_restante(int(tiempo_restante))
 
-    # Actualizar la pantalla
     pygame.display.flip()
 
-    # Manejar eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

@@ -20,13 +20,11 @@ palabra = ['parada', 'dormida']
 
 @bot.event
 async def event_ready():
-    print('Estamos listos')
+    print('Comandos listos')
 
 @bot.event
 async def event_message(ctx):
     await bot.handle_commands(ctx)
-
-    print(ctx.raw_data)
 
     if 'hola' in ctx.content.lower():
         await ctx.channel.send(f'Hola {ctx.author.name}, gracias por pasarte por el directo bienvenid@ 🎉')
@@ -123,6 +121,14 @@ async def emotes(ctx):
 @bot.command(name='opgg')
 async def comandos(ctx):
     await ctx.send(f'Opgg main: https://www.op.gg/summoners/kr/Hide%20on%20bush-KR1')
+
+@bot.command(name='ruleta')
+async def ruleta(ctx):
+    await ctx.send(f'Los comandos de la Ruleta son: !estadisticas, !apostar (cantidad) (numero o Rojo/Negro), !repetir (repite tus apuestas guardadas), !guardar (guarda tus ultimas apuestas), !misapuestas')
+
+@bot.command(name='casino')
+async def casino(ctx):
+    await ctx.send(f'Los comandos de casino son: !merlumonedas, !ruleta, !tragamonedas(1000), !maquinita(1000), !galletita(1000), !rusa(todas tus fichas), !moneda(1000)')
 
 @bot.command(name='comandos')
 async def comandos(ctx):

@@ -1,1 +1,7 @@
-{"soymerlu": [{"cantidad": 1000, "apuesta": "0", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "00", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "rojo", "tipo_apuesta": "color"}, {"cantidad": 5000, "apuesta": "2", "tipo_apuesta": "numero"}, {"cantidad": 5000, "apuesta": "10", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "14", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "32", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "26", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "29", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "4", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "1", "tipo_apuesta": "numero"}, {"cantidad": 1000, "apuesta": "3", "tipo_apuesta": "numero"}]}
+{
+    "soymerlu": [
+        "soymerlu,1000,rojo,color,f061fafa-27ab-4379-abdb-409acb657ce8-profile_image-300x300.png",
+        "soymerlu,1000,10,numero,f061fafa-27ab-4379-abdb-409acb657ce8-profile_image-300x300.png",
+        "soymerlu,1000,00,numero,f061fafa-27ab-4379-abdb-409acb657ce8-profile_image-300x300.png"
+    ]
+}
