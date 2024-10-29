@@ -26,8 +26,8 @@ def leer_apuestas():
     apuestas = []
     with open(apuestas_file, "r") as file:
         for line in file:
-            jugador, cantidad, numero, foto_perfil = line.strip().split(",")
-            apuestas.append((numero.strip(), int(cantidad), foto_perfil.strip()))  
+            jugador, cantidad, numero, tipo_apuesta, foto_perfil = line.strip().split(",")
+            apuestas.append((numero.strip(), int(cantidad), tipo_apuesta, foto_perfil.strip()))  
     return apuestas
 
 def obtener_posicion_ficha(opcion):
@@ -104,7 +104,7 @@ def redondear_imagen(imagen):
     
     # Combinar la imagen con la superficie circular
     circle_surface.blit(imagen, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-    return pygame.transform.scale(circle_surface, (15, 15))  # Redimensionar a 15x15
+    return pygame.transform.scale(circle_surface, (20, 20))  # Redimensionar a 15x15
 
 running = True
 ultimo_tiempo = time.time()
@@ -126,7 +126,7 @@ while running:
     screen.blit(tablero_image, tablero_rect.topleft)
 
     apuestas = leer_apuestas()
-    for opcion, cantidad, codigo_imagen in apuestas:
+    for opcion, cantidad, tipo_apuesta, codigo_imagen in apuestas:
         pos_x, pos_y = obtener_posicion_ficha(opcion)
         ficha_image = cargar_imagen_perfil(codigo_imagen)
 

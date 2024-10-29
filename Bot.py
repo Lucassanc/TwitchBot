@@ -37,7 +37,6 @@ async def procesar_apuestas():
     await bot._ws.send_privmsg('SoyMerlu', "Se cierran las apuestas, Girando la ruleta...")
     subprocess.run(['python', 'Ruleta\\ruleta.py'])
 
-
     with open(ganadores_file, 'r') as file:
         last_line = file.readlines()[-1].strip()
         parts = last_line.split(',')
@@ -54,12 +53,17 @@ async def procesar_apuestas():
 
     await bot._ws.send_privmsg('SoyMerlu', f"Repartiendo premios...")
     for apuesta in apuestas:
-        user, cantidad_str, tipo_apuesta = apuesta.strip().split(',')
+        datos = apuesta.strip().split(',')
+        
+        if len(datos) < 3:
+            print(f"Formato incorrecto en la línea: {apuesta}")
+            continue
+        
+        user, cantidad_str, tipo_apuesta = datos[:3]
         cantidad = int(cantidad_str)
 
         user_fichas = obtener_fichas(user, fichas_file)
         
-
         if tipo_apuesta.isdigit() and int(tipo_apuesta) in range(37):
             if numero == tipo_apuesta:
                 ganancia = cantidad * 36
@@ -75,9 +79,9 @@ async def procesar_apuestas():
     with open(apuestas_file, 'w') as file:
         file.write("")
 
-def guardar_apuesta(user, cantidad, apuesta, foto_perfil):
+def guardar_apuesta(user, cantidad, apuesta, tipo_apuesta, foto_perfil):
     with open(apuestas_file, 'a') as file:
-        file.write(f"{user},{cantidad},{apuesta},{foto_perfil}\n")
+        file.write(f"{user},{cantidad},{apuesta}, {tipo_apuesta}, {foto_perfil}\n")
 
 def leer_ganadores(archivo):
     with open(archivo, 'r') as f:
@@ -209,7 +213,7 @@ def obtener_foto_perfil(username):
 
 async def girar_ruleta_periodicamente():
     while True:
-        await asyncio.sleep(120)
+        await asyncio.sleep(10)
         await procesar_apuestas()
 
 @bot.event
@@ -276,7 +280,7 @@ async def apostar(ctx):
         'foto_perfil': foto_perfil
     })
 
-    guardar_apuesta(user, cantidad, apuesta, foto_perfil)
+    guardar_apuesta(user, cantidad, apuesta, tipo_apuesta, foto_perfil)
     await ctx.send(f"Apuesta registrada de {user}. Te quedan {user_fichas} Merlumonedas.")
 
 @bot.command(name='repetir')
@@ -313,17 +317,19 @@ async def repetir(ctx):
         partes = apuesta_str.split(',')
         cantidad = int(partes[1])  # La cantidad apostada
         apuesta = partes[2]  # La apuesta (rojo, negro, número, etc.)
+        tipo_apuesta = partes[3]
         foto_perfil = partes[4]  # La foto de perfil
 
         # Agregar la apuesta a las apuestas actuales
         apuestas_actuales[user].append({
             'cantidad': cantidad,
             'apuesta': apuesta,
+            'tipo_apuesta': tipo_apuesta,
             'foto_perfil': foto_perfil
         })
 
         # Llamar a la función para guardar la apuesta (esto puede variar según tu implementación)
-        guardar_apuesta(user, cantidad, apuesta, foto_perfil)
+        guardar_apuesta(user, cantidad, apuesta, tipo_apuesta, foto_perfil)
 
     await ctx.send(f"{user}, repetiste tus {len(ultimas_apuestas)} apuestas guardadas. Gastaste {total_apuestas} fichas, te quedan {user_fichas} Merlumonedas.")
 
