@@ -1,2 +1,2 @@
 Perdiste
-Simbolos: Slot/campana.png, Slot/cereza.png, Slot/cereza.png
+Simbolos: Slot/diamante.png, Slot/campana.png, Slot/cereza.png

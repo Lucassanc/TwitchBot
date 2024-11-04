@@ -8,6 +8,7 @@ import requests
 directorio_actual = os.path.dirname(os.path.abspath(__file__))
 os.chdir(directorio_actual)
 
+tiempo = 120
 apuestas_file = 'Ruleta/apuestas.txt'
 fichas_file = 'FichasCasino.txt'
 ganadores_file = 'Ruleta/ganadores.txt'
@@ -175,12 +176,8 @@ def actualizar_fichas(usuario, nuevas_fichas, fichas_file):
                 file.write(f"{name} {nuevas_fichas}\n")
             else:
                 file.write(line)
-    
-BROADCASTER_ID = '153299663'
+
 CLIENT_ID = 'gp762nuuoqcoxypju8c569th9wz7q5'
-TOKEN= 'bgndnm67gp1m8czmq8i01jcxhoajyj'
-REFRESH_TOKEN = '720hsds8o76ckn912okrsk6re7kjbt33erqux3vktivo7f3811'
-CLIENT_SECRET = 'e9ja811yft2iban1xuqdvyxepbc85v'
 ACCESS_TOKEN = 'r9p9tth3uzwl9sj9u8s3q91asx0ybw'
 
 bot = commands.Bot(
@@ -213,7 +210,7 @@ def obtener_foto_perfil(username):
 
 async def girar_ruleta_periodicamente():
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(tiempo)
         await procesar_apuestas()
 
 @bot.event
@@ -377,7 +374,7 @@ async def misapuestas(ctx):
         return
 
     apuestas = apuestas_guardadas[user]
-    mensaje = f"Tienes {len(apuestas)} apuestas guardadas: " + ", ".join([f"{a['cantidad']} al {a['apuesta']}" for a in apuestas])
+    mensaje = (f"Tienes {len(apuestas)} apuestas guardadas.")
     
     await ctx.send(mensaje)
                    

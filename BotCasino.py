@@ -32,11 +32,7 @@ def actualizar_fichas(usuario, nuevas_fichas, fichas_file):
             else:
                 file.write(line)
 
-BROADCASTER_ID = '153299663'
 CLIENT_ID = 'gp762nuuoqcoxypju8c569th9wz7q5'
-TOKEN= 'bgndnm67gp1m8czmq8i01jcxhoajyj'
-REFRESH_TOKEN = '720hsds8o76ckn912okrsk6re7kjbt33erqux3vktivo7f3811'
-CLIENT_SECRET = 'e9ja811yft2iban1xuqdvyxepbc85v'
 ACCESS_TOKEN = 'r9p9tth3uzwl9sj9u8s3q91asx0ybw'
 
 bot = commands.Bot(

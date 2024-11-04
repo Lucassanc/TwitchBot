@@ -1,12 +1,8 @@
 from twitchio.ext import commands
 import random
 
-BROADCASTER_ID = '153299663'
 CLIENT_ID = 'gp762nuuoqcoxypju8c569th9wz7q5'
-TOKEN= 'bgndnm67gp1m8czmq8i01jcxhoajyj'
-REFRESH_TOKEN = 'fso06nysheb9yjlcqp1tuga9s80hrcq3b6xaj554uivu0y0chv'
-CLIENT_SECRET = 'e9ja811yft2iban1xuqdvyxepbc85v'
-ACCESS_TOKEN = 'w2kquwqfon3730122hc2cl3zuc1jgb'
+ACCESS_TOKEN = 'r9p9tth3uzwl9sj9u8s3q91asx0ybw'
 
 bot = commands.Bot(
     irc_token = f'oauth:{ACCESS_TOKEN}',
